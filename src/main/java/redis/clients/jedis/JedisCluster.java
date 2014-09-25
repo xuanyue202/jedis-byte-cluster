@@ -45,6 +45,16 @@ public class JedisCluster extends BinaryJedisCluster implements JedisCommands,
             }
         }.run(key);
     }
+    
+    public List<String> mget(final String... keys) {
+    	return new JedisClusterCommand<List<String>>(connectionHandler, timeout,
+    			maxRedirections) {
+    		    @Override
+    		    public List<String> execute(Jedis connection) {
+    			return connection.mget(keys);
+    		    }
+    		}.run(keys[0]);
+        }
 
     @Override
     public String get(final String key) {
@@ -1123,6 +1133,16 @@ public class JedisCluster extends BinaryJedisCluster implements JedisCommands,
 	}.run(null);
     }
 
+    public Long del(final String... keys) {
+    	return new JedisClusterCommand<Long>(connectionHandler, timeout,
+    		maxRedirections) {
+    	    @Override
+    	    public Long execute(Jedis connection) {
+    		return connection.del(keys);
+    	    }
+    	}.run(keys[0]);
+        }
+    
     @Override
     public Long del(final String key) {
 	return new JedisClusterCommand<Long>(connectionHandler, timeout,
