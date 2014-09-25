@@ -1340,4 +1340,15 @@ public class BinaryJedisCluster implements BinaryJedisCommands,
                 }
             }.runBinary(key);
 	}
+	
+	 
+    public List<byte[]> mget(final byte[]... keys) {
+        return new JedisClusterCommand<List<byte[]>>(connectionHandler, timeout,
+                maxRedirections) {
+            @Override
+            public List<byte[]> execute(Jedis connection) {
+                return connection.mget(keys);
+            }
+        }.runBinary(keys[0]);
+    }
 }
