@@ -1,11 +1,13 @@
 package redis.clients.jedis;
 
-import redis.clients.util.SafeEncoder;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+
+import redis.clients.util.SafeEncoder;
 
 public class BinaryJedisCluster implements BinaryJedisCommands,
         JedisClusterBinaryScriptingCommands {
@@ -30,12 +32,20 @@ public class BinaryJedisCluster implements BinaryJedisCommands,
     public BinaryJedisCluster(Set<HostAndPort> jedisClusterNode, int timeout,
         int maxRedirections) {
     this.connectionHandler = new JedisSlotBasedConnectionHandler(
-        jedisClusterNode);
+        jedisClusterNode, new GenericObjectPoolConfig());
     this.timeout = timeout;
     this.maxRedirections = maxRedirections;
     }
     
-    @Override
+    public BinaryJedisCluster(Set<HostAndPort> jedisClusterNode, int timeout,
+			int maxRedirections, final GenericObjectPoolConfig poolConfig) {
+		this.connectionHandler = new JedisSlotBasedConnectionHandler(
+				jedisClusterNode, poolConfig);
+		this.timeout = timeout;
+		this.maxRedirections = maxRedirections;
+	}
+
+	@Override
     public String set(final byte[] key, final byte[] value) {
         return new JedisClusterCommand<String>(connectionHandler, timeout,
         maxRedirections) {
@@ -1274,4 +1284,60 @@ public class BinaryJedisCluster implements BinaryJedisCommands,
                 }
             }.runBinary(key);
     }
+
+	@Override
+	public List<byte[]> srandmember(final byte[] key, final int count) {
+		 return new JedisClusterCommand<List<byte[]>>(connectionHandler, timeout,
+	                maxRedirections) {
+	                @Override
+	                public List<byte[]>  execute(Jedis connection) {
+	                return connection.srandmember(key, count);
+	                }
+	            }.runBinary(key);
+	}
+
+	@Override
+	public Long zlexcount(final byte[] key, final byte[] min, final byte[] max) {
+		return new JedisClusterCommand<Long>(connectionHandler, timeout,
+                maxRedirections) {
+                @Override
+                public Long  execute(Jedis connection) {
+                return connection.zlexcount(key, min, max);
+                }
+            }.runBinary(key);
+	}
+
+	@Override
+	public Set<byte[]> zrangeByLex(final byte[] key, final byte[] min, final byte[] max) {
+		return new JedisClusterCommand<Set<byte[]>>(connectionHandler, timeout,
+                maxRedirections) {
+                @Override
+                public Set<byte[]> execute(Jedis connection) {
+                return connection.zrangeByLex(key, min, max);
+                }
+            }.runBinary(key);
+	}
+
+	@Override
+	public Set<byte[]> zrangeByLex(final byte[] key, final byte[] min, final byte[] max,
+			final int offset, final int count) {
+		return new JedisClusterCommand<Set<byte[]>>(connectionHandler, timeout,
+                maxRedirections) {
+                @Override
+                public Set<byte[]> execute(Jedis connection) {
+                return connection.zrangeByLex(key, min, max, offset, count);
+                }
+            }.runBinary(key);
+	}
+
+	@Override
+	public Long zremrangeByLex(final byte[] key, final byte[] min, final byte[] max) {
+		return new JedisClusterCommand<Long>(connectionHandler, timeout,
+                maxRedirections) {
+                @Override
+                public Long execute(Jedis connection) {
+                return connection.zremrangeByLex(key, min, max);
+                }
+            }.runBinary(key);
+	}
 }
