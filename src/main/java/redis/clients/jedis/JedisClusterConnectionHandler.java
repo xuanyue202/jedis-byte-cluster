@@ -26,7 +26,14 @@ public abstract class JedisClusterConnectionHandler {
 
     abstract Jedis getConnectionFromSlot(int slot);
 
-    public JedisClusterConnectionHandler(Set<HostAndPort> nodes, final GenericObjectPoolConfig poolConfig) {
+    public Jedis getConnectionFromNode(HostAndPort node) {
+	cache.setNodeIfNotExist(node);
+	return cache.getNode(JedisClusterInfoCache.getNodeKey(node))
+		.getResource();
+    }
+
+    public JedisClusterConnectionHandler(Set<HostAndPort> nodes,
+	    final GenericObjectPoolConfig poolConfig) {
 	this.cache = new JedisClusterInfoCache(poolConfig);
 	initializeSlotsCache(nodes, poolConfig);
     }
@@ -39,7 +46,8 @@ public abstract class JedisClusterConnectionHandler {
 	cache.assignSlotToNode(slot, targetNode);
     }
 
-    private void initializeSlotsCache(Set<HostAndPort> startNodes, GenericObjectPoolConfig poolConfig) {
+    private void initializeSlotsCache(Set<HostAndPort> startNodes,
+	    GenericObjectPoolConfig poolConfig) {
 	for (HostAndPort hostAndPort : startNodes) {
 	    JedisPool jp = new JedisPool(poolConfig, hostAndPort.getHost(),
 		    hostAndPort.getPort());

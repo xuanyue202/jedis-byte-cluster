@@ -9,22 +9,26 @@ import java.util.Map.Entry;
 import org.junit.Test;
 
 import redis.clients.util.JedisClusterCRC16;
+import redis.clients.util.SafeEncoder;
 
 public class JedisClusterCRC16Test {
 
     @Test
     public void testGetCRC16() throws Exception {
 	Map<String, Integer> solutions = prepareSolutionSet();
-	
+
 	for (Entry<String, Integer> entry : solutions.entrySet()) {
 	    // string version
-	    assertEquals(entry.getValue().intValue(), JedisClusterCRC16.getCRC16(entry.getKey()));
-	    
+	    assertEquals(entry.getValue().intValue(),
+		    JedisClusterCRC16.getCRC16(entry.getKey()));
+
 	    // byte array version
-	    assertEquals(entry.getValue().intValue(), JedisClusterCRC16.getCRC16(entry.getKey().getBytes()));
+	    assertEquals(entry.getValue().intValue(),
+		    JedisClusterCRC16.getCRC16(SafeEncoder.encode(entry
+			    .getKey())));
 	}
     }
-    
+
     @Test
     public void testGetSlot() {
 	assertEquals(7186, JedisClusterCRC16.getSlot("51"));

@@ -12,6 +12,29 @@ import redis.clients.util.SafeEncoder;
 public class BinaryJedisCluster implements BinaryJedisCommands,
         JedisClusterBinaryScriptingCommands {
     
+	@Override
+	public Set<byte[]> zrevrangeByLex(final byte[] key, final byte[] max, final byte[] min) {
+		return new JedisClusterCommand<Set<byte[]>>(connectionHandler, timeout,
+                maxRedirections) {
+            @Override
+            public Set<byte[]> execute(Jedis connection) {
+            	return connection.zrevrangeByLex(key, max, min);
+            }
+        }.runBinary(key);
+    }
+
+    @Override
+    public Set<byte[]> zrevrangeByLex(final byte[] key, final byte[] max, final byte[] min,
+	    final int offset, final int count) {
+    	return new JedisClusterCommand<Set<byte[]>>(connectionHandler, timeout,
+                maxRedirections) {
+            @Override
+            public Set<byte[]> execute(Jedis connection) {
+            	return connection.zrevrangeByLex(key, max, min, offset, count);
+            }
+        }.runBinary(key);
+    }
+	
     public static final short HASHSLOTS = 16384;
     protected static final int DEFAULT_TIMEOUT = 1;
     protected static final int DEFAULT_MAX_REDIRECTIONS = 5;
@@ -1351,4 +1374,5 @@ public class BinaryJedisCluster implements BinaryJedisCommands,
             }
         }.runBinary(keys[0]);
     }
+
 }

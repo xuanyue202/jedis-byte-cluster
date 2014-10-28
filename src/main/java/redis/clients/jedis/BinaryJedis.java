@@ -26,7 +26,11 @@ public class BinaryJedis implements BasicCommands, BinaryJedisCommands,
     protected Client client = null;
     protected Transaction transaction = null;
     protected Pipeline pipeline = null;
-    
+
+    public BinaryJedis() {
+	client = new Client();
+    }
+
     public BinaryJedis(final String host) {
 	URI uri = URI.create(host);
 	if (uri.getScheme() != null && uri.getScheme().equals("redis")) {
@@ -1769,26 +1773,9 @@ public class BinaryJedis implements BasicCommands, BinaryJedisCommands,
 
     public Transaction multi() {
 	client.multi();
-	client.getOne();	// expected OK
+	client.getOne(); // expected OK
 	transaction = new Transaction(client);
 	return transaction;
-    }
-
-    @Deprecated
-    /**
-     * This method is deprecated due to its error prone
-     * and will be removed on next major release
-     * You can use multi() instead
-     * @see https://github.com/xetorthio/jedis/pull/498
-     */
-    public List<Object> multi(final TransactionBlock jedisTransaction) {
-	List<Object> results = null;
-	jedisTransaction.setClient(client);
-	client.multi();
-	client.getOne();	// expected OK
-	jedisTransaction.execute();
-	results = jedisTransaction.exec();
-	return results;
     }
 
     protected void checkIsInMulti() {
@@ -2224,19 +2211,6 @@ public class BinaryJedis implements BasicCommands, BinaryJedisCommands,
 	checkIsInMulti();
 	client.auth(password);
 	return client.getStatusCodeReply();
-    }
-
-    @Deprecated
-    /**
-     * This method is deprecated due to its error prone with multi
-     * and will be removed on next major release
-     * You can use pipelined() instead
-     * @see https://github.com/xetorthio/jedis/pull/498
-     */
-    public List<Object> pipelined(final PipelineBlock jedisPipeline) {
-	jedisPipeline.setClient(client);
-	jedisPipeline.execute();
-	return jedisPipeline.syncAndReturnAll();
     }
 
     public Pipeline pipelined() {
@@ -2834,22 +2808,39 @@ public class BinaryJedis implements BasicCommands, BinaryJedisCommands,
     }
 
     @Override
-    public Set<byte[]> zrangeByLex(final byte[] key, final byte[] min, final byte[] max) {
+    public Set<byte[]> zrangeByLex(final byte[] key, final byte[] min,
+	    final byte[] max) {
 	checkIsInMulti();
 	client.zrangeByLex(key, min, max);
 	return new LinkedHashSet<byte[]>(client.getBinaryMultiBulkReply());
     }
 
     @Override
-    public Set<byte[]> zrangeByLex(final byte[] key, final byte[] min, final byte[] max,
-	    final int offset, final int count) {
+    public Set<byte[]> zrangeByLex(final byte[] key, final byte[] min,
+	    final byte[] max, final int offset, final int count) {
 	checkIsInMulti();
 	client.zrangeByLex(key, min, max, offset, count);
 	return new LinkedHashSet<byte[]>(client.getBinaryMultiBulkReply());
     }
 
     @Override
-    public Long zremrangeByLex(final byte[] key, final byte[] min, final byte[] max) {
+    public Set<byte[]> zrevrangeByLex(byte[] key, byte[] max, byte[] min) {
+	checkIsInMulti();
+	client.zrevrangeByLex(key, max, min);
+	return new LinkedHashSet<byte[]>(client.getBinaryMultiBulkReply());
+    }
+
+    @Override
+    public Set<byte[]> zrevrangeByLex(byte[] key, byte[] max, byte[] min,
+	    int offset, int count) {
+	checkIsInMulti();
+	client.zrevrangeByLex(key, max, min, offset, count);
+	return new LinkedHashSet<byte[]>(client.getBinaryMultiBulkReply());
+    }
+
+    @Override
+    public Long zremrangeByLex(final byte[] key, final byte[] min,
+	    final byte[] max) {
 	checkIsInMulti();
 	client.zremrangeByLex(key, min, max);
 	return client.getIntegerReply();
@@ -3630,4 +3621,5 @@ public class BinaryJedis implements BasicCommands, BinaryJedisCommands,
 	}
 	return new ScanResult<Tuple>(newcursor, results);
     }
+
 }

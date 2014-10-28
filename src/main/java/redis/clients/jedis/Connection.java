@@ -16,14 +16,26 @@ import redis.clients.util.RedisOutputStream;
 import redis.clients.util.SafeEncoder;
 
 public class Connection implements Closeable {
-    private String host;
+
+    private String host = Protocol.DEFAULT_HOST;
     private int port = Protocol.DEFAULT_PORT;
     private Socket socket;
     private RedisOutputStream outputStream;
     private RedisInputStream inputStream;
     private int timeout = Protocol.DEFAULT_TIMEOUT;
-
     private boolean broken = false;
+
+    public Connection() {
+    }
+
+    public Connection(final String host) {
+	this.host = host;
+    }
+
+    public Connection(final String host, final int port) {
+	this.host = host;
+	this.port = port;
+    }
 
     public Socket getSocket() {
 	return socket;
@@ -60,11 +72,6 @@ public class Connection implements Closeable {
 	}
     }
 
-    public Connection(final String host) {
-	super();
-	this.host = host;
-    }
-
     protected Connection sendCommand(final Command cmd, final String... args) {
 	final byte[][] bargs = new byte[args.length][];
 	for (int i = 0; i < args.length; i++) {
@@ -97,12 +104,6 @@ public class Connection implements Closeable {
 	}
     }
 
-    public Connection(final String host, final int port) {
-	super();
-	this.host = host;
-	this.port = port;
-    }
-
     public String getHost() {
 	return host;
     }
@@ -117,10 +118,6 @@ public class Connection implements Closeable {
 
     public void setPort(final int port) {
 	this.port = port;
-    }
-
-    public Connection() {
-
     }
 
     public void connect() {
@@ -226,8 +223,8 @@ public class Connection implements Closeable {
 
     @SuppressWarnings("unchecked")
     public List<Long> getIntegerMultiBulkReply() {
-        flush();
-        return (List<Long>) Protocol.read(inputStream);
+	flush();
+	return (List<Long>) Protocol.read(inputStream);
     }
 
     public Object getOne() {
