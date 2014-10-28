@@ -50,6 +50,26 @@ public class JedisCluster extends BinaryJedisCluster implements BasicCommands, J
 		super(jedisClusterNode, timeout, DEFAULT_MAX_REDIRECTIONS, poolConfig);
 	}
 	
+    public Long del(final String... key) {
+	return new JedisClusterCommand<Long>(connectionHandler, timeout,
+		maxRedirections) {
+	    @Override
+	    public Long execute(Jedis connection) {
+		return connection.del(key);
+	    }
+	}.run(key[0]);
+    }
+    
+    public List<String> mget(final String... keys) {
+        return new JedisClusterCommand<List<String>>(connectionHandler, timeout,
+                maxRedirections) {
+            @Override
+            public List<String> execute(Jedis connection) {
+                return connection.mget(keys);
+            }
+        }.run(keys[0]);
+    }
+    
 	@Override
 	public Object eval(final String script, final int keyCount,
 			final String... params) {
@@ -61,7 +81,7 @@ public class JedisCluster extends BinaryJedisCluster implements BasicCommands, J
 			}
 		}.run(keyCount, params);
 	}
-
+	
 	@Override
 	public Object eval(final String script, final String key) {
 		return new JedisClusterCommand<Object>(connectionHandler, timeout,
